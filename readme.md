@@ -3,11 +3,11 @@
 
 The Gestalt Motion Planner is a collision-free trajectory planner for robotic manipulators. Setup a scene, run path planning jobs, optimize the resulting trajectories and feed them to a robot.
 
-# Project Status
+## Project Status
 
 The planner is used in industrial applications at Gestalt Automation GmbH. The author is no longer working there and maintaining this planner as a hobby project (with permission).
 
-## Features
+### Features
 
 * C++ and optional Python bindings, JSON-RPC wrap of the complete API for easy interface creation
 * support of URDF with STL models
@@ -21,57 +21,57 @@ The planner is used in industrial applications at Gestalt Automation GmbH. The a
 * collision ignore groups for flexible collision filtering
 * comprehensive html debug visualizations for states and trajectories
 
-## Missing
+### Missing
 
 * strict input validation: many common errors are caught, unforeseen edge cases can cause a crash
 * inverse kinematics: the planner operates entirely in joint space, ik for target poses has to be implemented by the user
 * usable debug logs: right now, the planner creates a C++ file with the history of function calls which can be compiled into the planner itself and debugged in an IDE which is arguably somewhat unelegant
 
-# License
+## License
 
 This project is released under the [PolyForm Noncommercial License 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0/). For a commercial license contact [Gestalt Automation GmbH](https://www.gestalt-automation.com/en/contact).
 
-# Quickstart
+## Quickstart
 
-## Setup
+### Setup
 
 If you run some recent version of Ubuntu and have docker installed, you can just execute `sh docker_build_and_test.sh` and it will spit out static libs for C++ and python modules into a build folder. If not, you can still explore the Dockerfile for installation instructions.
 
-## API
+### API
 
 For a complete **C++** API reference, refer to `src/planner/api.h` and `src/planner/plannermethods.inc`. For usage demonstrations, refer to `src/test/test_api.cpp.`
 
 For a complete **Python** API reference, run `src/bindings/python/demo.py` and check the output. For a basic usage demonstration, check its source.
 
-# How to Read this Documentation
+## How to Read this Documentation
 
 It is probably the best idea to read the whole thing from top to bottom. Many quirks are only mentioned once where they are most relevant, although they are also a bit relevant for other aspects.
 
-# Concepts
+## Concepts
 
-## Robot Hierarchy
+### Robot Hierarchy
 
 To the planner, everything is a robot. Rigid objects are robots with a single link and no joints. The scene is represented using the [Scene Graph](https://en.wikipedia.org/wiki/Scene_graph#Scene_graphs_in_games_and_3D_applications) pattern. A node represents a robot link and an edge represents a joint (or an attachment, which is seen as a fixed joint). The root node represents the world coordinate system, every other node (link) must have one parent and can have an arbitrary amount of children. Cycles like objects that have two gripper links as parents are not possible, the object has to be attached to only one of the gripper links in that case. A link's pose is relative to its parent and the link will move with the parent. Collisions between parent and child are automatically ignored.
 
-## Robot Description
+### Robot Description
 
 Robots are described using the [URDF file format.](http://wiki.ros.org/urdf/XML) in combination with an additional yaml file for further specifications like the order of the actuated joints (which tuple value maps to which joint), collision ignore groups etc. See `models/ur5e/ur5e.yaml` for an example.
 
-## Safety Margin
+### Safety Margin
 
 Every robot can have an individual safety margin, inflating it artificially in order to account for inaccuracies of the robot mount and also to prevent missed collisions due to motion sampling. A safety margin of 5 cm means that a gap of 5 cm between the robot and another object (i.e. that object's safety margin) is seen as a collision.
 
-## Collision Ignore Groups
+### Collision Ignore Groups
 
 Objects that should not be checked for collision among each other can be grouped in collision ignore groups. Each object can be in multiple groups. Collisions between parent and child are automatically ignored. Any object that is currently not actuated will not be checked for collisions with other passive objects. All those objects are automatically members of the `__passive__` collision ignore group.
 
-## Planning Domain
+### Planning Domain
 
 All planning is done in joint space. This avoids the effort of having to compute the inverse kinematics for every step and it also avoids any trouble with singularities. Since the planner does not need inverse kinematics computation at all, it is robot-agnostic. For kinematic constraints, like holding the end-effector upright for handling liquids, check out [constraints](#constraints).
 
 When you actually need linear motion in Cartesian space, you probably do not need path planning anyway because you likely want to move along a predefined line. In this case, you can use the interpolator to generate your trajectory in Cartesian space, compute the inverse kinematics manually at each sample and just check the result for collisions using the planner.
 
-## Planning Workflow
+### Planning Workflow
 
 Trajectory planning is done in the following steps:
 
@@ -80,7 +80,7 @@ Trajectory planning is done in the following steps:
 * **Tightening:** This step iterates through the found waypoints and tries to bring each waypoint closer to the average of its neighbors, while continuously making sure that no collisions are introduced. This can be pictured as threading a rubber band through all waypoints and tightening it, so that the path gets shorter while tightly curving around collisions.
 * **Smooth Interpolation:** Here a heuristic (similar to [Akima splines](https://en.wikipedia.org/wiki/Akima_spline)) is employed to generate desired velocity vectors for the waypoints. Smooth spline curves are then created to connect the waypoints, considering the velocity vectors. If new collisions are introduced, the velocities are reduced until they are zero, which might result in straight lines again in an edge case.
 
-## Constraints
+### Constraints
 
 In order to hold something upright while moving, constraints were introduced. Constraints keep the dot product of the joint angles and arbitrary vectors constant. Consider the following configuration:
 
@@ -106,45 +106,45 @@ Another condition for the constraints concept to work is that the robot is mount
 
 Although all these conditions seem pretty limiting, they should be fulfilled in most real-world applications. And on the flip side, introducing more constraints actually makes every step of the planning phase more performant, since each constraint reduces the dimensionality of the problem by one. The implementation also makes use of this fact. However, the search space is reduced by cutting off massive parts of it, which can make finding a solution less likely.9
 
-## NaN for Unchanged Values
+### NaN for Unchanged Values
 
 If you want to change only some values in a pose or a joint vector, set the other ones to NaN. For example, setting the base pose of a robot to `[x=1, y=2, z=NaN, qx=NaN, qy=NaN, qz=NaN, qw=NaN]` will only change the x and y components of its pose. Similarly, setting the joint values to `q = [NaN, NaN, NaN, 1, 2, 3]` will only change the last three joints. This probably changes to `std::optional` in the future though as it is somewhat semantically unintuitive which is never good. Note that this convention is only used for poses and joint values, not for arbitrary parameters. Note also that when changing poses, you can only set either all values of the quaternion part or none of them.
 
-## Logging
+### Logging
 
 If you specify a name for the `command_log_file` when constructing the planner, a cpp will be created which logs any method call that was invoked on the planner. This can be compiled with the planner library and then debugged.
 
-## Rendering
+### Rendering
 
 The planner lets you render situations and trajectories as html files. Passive objects will be teal with a plum collision margin, active objects are yellow with a blue collision margin. Only collision hulls are rendered, not the visual representations of links that are stored in the URDF files.
 
-# API in Sensical Order
+## API in Sensical Order
 
 Note that the API is evolving and this documentation might be outdated. `src/planner/plannermethods.inc` and the output of demo.py are reliable references, generated from the code. In python, keyword arguments (kwargs) have to be used. This is so that the API can be extended later without breaking your code. If you are working in C++20 (which you should be, it's awesome), you can also kind of use [named parameters](https://pdimov.github.io/blog/2020/09/07/named-parameters-in-c20/), the wrapper functions taking parameter structs are automatically generated for each method.
 
-## Instantiating the Planner
+### Instantiating the Planner
 
 The planner is an object with state and you need to construct one to hold a planning scene.
 
-## Spawning / Removing Things
+### Spawning / Removing Things
 
 Call `spawn` for creating robots and static objects (which are also considered robots) in the scene. Note that the planner uses a file cache and loading the same file multiple times is cheap. However, if the file changes, the planner will not notice and spawn from the cache. Files can be cached manually using `cache_file`, for instance if the planner runs on another machine and does not actually have the file in its file system. Using `remove` you can remove objects again.
 
-## Positioning Things
+### Positioning Things
 
 Call `set_base_pose` for changing the base pose of a robot. It can also attach the robot to a different parent. If it is called with all pose values set to NaN, it can change the parent without changing the pose in world coordinates. This is useful for dynamic attachments, like something picking something up. Collisions between parent and child are automatically ignored. Use `set_joint_positions` to change the joint values and thus the posture of the robot. Note that neither `set_base_pose` nor `set_joint_positions` perform any kind of planning or collision detection, they will both happily move robots into each other. Note that you can use `NaN` for individual joint values to leave them unchanged.
 
-## Collision Configuration
+### Collision Configuration
 
 Use `set_safety_margin` for setting the safety margin around a robot. A safety margin of 5 cm means that a gap of 5 cm between the robot and another object (i.e. that object's safety margin) is seen as a collision. For ignoring collisions between links, you can put them into collision ignore groups using `create_collision_ignore_group`. Groups can be deleted using `delete_collision_ignore_group`. All existing collision ignore groups can be listed using `get_collision_ignore_groups`.
 
-## Path Planning
+### Path Planning
 
 Finally! The `plan_path` method explores the configuration space of a robot, trying to find a collision-free connection from start to target. This uses the [Open Motion Planning Library](https://ompl.kavrakilab.org/index.html). The result is a list of waypoints between which a linear motion in joint space is collision-free, or an empty list if no path was found. Be aware that planning a motion restores the start pose when it is done. So if you actually perform the motion on the real robot, you need to update the scene using `set_joint_positions` additionally.
 
 OMPL supports [lots of different planning algorithms](https://ompl.kavrakilab.org/planners.html) with lots of parameters. You can use `get_planner_info` to get a list of all supported planners and their parameters. This list is also printed when you run demo.py. In practice, RRT connect outperformed all other planners by a large margin in all our scenarios.
 
-## Path Tools
+### Path Tools
 
 The method `interpolate` can be used to do linear interpolation of arbitrary parameters. It converts a set of waypoints into a trajectory with limited velocity, acceleration and jerk, stopping at each waypoint. Since `plan_path` finds the waypoints in a way so that linear joint space motion between them is collision free, `interpolate` does not require knowledge of the scene, for interpolating in a collision-free way. Furthermore, you can use `interpolate` to generate a linear trajectory in Cartesian space, compute the inverse kinematics manually at each sample and check the result for collisions (see Path Validation).
 
@@ -157,11 +157,11 @@ Finally, you can lay a smooth curve through a list of waypoints, using `smoothen
 
 If you sampled your own trajectory (e.g. by generating each point via inverse kinematics), you can use `time_parameterize_path` to make sure that all kinematic limits (velocity, acceleration and jerk) in joint space are obeyed. The function will measure the maximum overshoot and resample accordingly.
 
-## Path Validation
+### Path Validation
 
 The `check_kinematic_feasibility` method can be used to see if maximum velocity, acceleration and jerk (all in joint space) are not overshot within the trajectory. For collision checking, there are `check_clearance` which checks all waypoints in random order and returns `false` when it encounters the first collision, and `find_collisions` which checks the complete trajectory and reports every collision, so it is much slower but yields more detailed information.
 
-## Debugging
+### Debugging
 
 There are two main mechanisms for debugging: logging and rendering. When instantiating the planner, you can pass it a filename, in which every method call will be logged. This log file is also valid C++ code that can be compiled with the planner and then you can for instance debug your colleague's python session in C++ with a proper IDE.
 
@@ -171,7 +171,7 @@ As the log gets quite big quite fast, you can call `command_log_comment` in betw
 
 Use `render_scene` and `render_animation` to inspect the scene you have created and the trajectories you have generated. Passive objects will be teal with a plum collision margin, active objects are yellow with a blue collision margin. Only collision hulls are rendered, not the visual representations of links that are stored in the URDF files. Collisions are also visualized and the colliding links are printed in the browser console. Use the mouse for navigating the scene. If you are viewing an animation, you can use space to start/stop the animation, left and right arrow keys to step one frame back or forth in time and up and down arrow keys to go to the beginning or the end of the animation. Note that the safety margin of convex triangle meshes have lots of gaps. This is due to the fact that for rendering, the triangles are just shifted outwards but the gaps are not filled for performance reasons. However, collision checks work in a different way and the meshes are inflated properly without gaps.
 
-## Miscellaneous Stuff
+### Miscellaneous Stuff
 
 Using `reset`, you can delete the complete scene. It is the same as creating a new planner instance. It also clears the file cache.
 
@@ -179,7 +179,7 @@ If you want to actuate a different set of joints than what is specified in the y
 
 If you have to create a new interface (http/ROS/ZeroMQ/...), the quickest way to do it would be to wrap the `json_call` method. It implements the [JSON-RPC 2.0 Specification](https://www.jsonrpc.org/specification) and can call any other planner method.
 
-# API in Alphabetical Order
+## API in Alphabetical Order
 
 Note that the API is evolving and this documentation might be outdated. `src/planner/plannermethods.inc` and the output of demo.py are reliable references, generated from the code. In python, keyword arguments (kwargs) have to be used. This is so that the API can be extended later without breaking your code. If you are working in C++20, you can also kind of use [named parameters](https://pdimov.github.io/blog/2020/09/07/named-parameters-in-c20/), the wrapper functions taking parameter structs are automatically generated for each method. Note that parameters are not explained per function but [here](#parameters).
 
@@ -414,7 +414,7 @@ GestaltPlanner:
         ) -> List[List[float]]
 ```
 
-## Parameters
+### Parameters
 
 |  |  |  |
 | --- | --- | --- |
@@ -452,7 +452,7 @@ GestaltPlanner:
 | `trajectory` | — | A list of waypoints in joint space |
 | `waypoints_suggestions` | — | When specified, the random sampler that is used by the state space explorer will output this list of waypoints first and also every now and then during random sampling, use this to guide the path. |
 
-## Major Dependencies
+### Major Dependencies
 
 [OMPL](https://ompl.kavrakilab.org/) is an abstract pathfinding library. You give it a set of start values and a set (or multiple sets) of target values and it tries to connect the two, exploring the parameter space and asking a callback if certain positions and transitions between positions are ok or not. It does not care about the scene or what the parameters do.
 
@@ -460,23 +460,23 @@ GestaltPlanner:
 
 [Ruckig](https://github.com/pantor/ruckig) is invoked in order to interpolate the waypoints of the found path and turn them into a smooth curve.
 
-# Working on the Planner
+## Working on the Planner
 
 I will just write in I-form now, as it's just you and me here. I originally wrote this section so my colleagues could work on the planner while I was in parental leave. I will just leave it in, it serves as a nice entry point to the code.
 
 I tried to comply to the rules of [Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html) but it has proven to be very difficult as the planner has grown with the project requirements and needed big refactories every once in a while. Old concepts became irrelevant, leaving their traces, and new concepts were woven in, despite the planner not wasing designed for them. All under time pressure. You know what it's like. I hope you will find your way through the code.
 
-## Navigating the Source Code
+### Navigating the Source Code
 
 I recommend VSCode with C++ Extensions and the CMake Tools extension for that. Your entry point is `src/planner/api.h`, from there you can (and absolutely should) use the "Go to Definition" [F12] and "Go to Implementations" [Ctrl+F12] functions to navigate everywhere and dig through the code. I wanted to comment everything with lots of in-depth explanations but then I saw [this](https://youtu.be/2a_ytyt9sf8?t=603) and who am I to argue with Uncle Bob. Also, my code totally documents itself 😉
 
-## Code Generation
+### Code Generation
 
 The planner has lots of interfaces: traditional C++ methods, methods for C++20 parameter structs, a JSON-RPC interface and python bindings. Normally, one would have to keep them all in sync manually whenever the API changes a bit. This proved to be incredibly inconvenient. Hence, I wrote crawlers that scan through the code, collect interface information and generate everything automatically. These generators are located in `src/codingassistants`. They scan the files in `src/planner/main` and produce `src/planner/plannermethods.inc`, `src/planner/main/jsondispatch.inc` and `src/bindings/bindings.cpp`. CMake will call the generators automatically but sometimes it does not notice a change and you need to delete the generated files and they get regenerated.
 
 Since the generators are hand-crafted parsers that only know as much C++ syntax as necessary, it might happen that you change an API method in a way that the parser doesn't understand. It will then give you the very wholistic error message "something's wrong with ...". Try to see if your syntax is somehow noticably different from mine. If you really need something that the parser cannot understand, your best bet is probably to deactivate the automatic code generation: In `src/planner/CMakeLists.txt`, commentate the `extract_members` call. In `src/bindings/python/CMakeLists.txt`, commentate the `generate_python_bindings` call. Trying to tweak the extractors instead is probably wasted time unless you are already familiar with PEG parsing and want to dig into my uncommented parser spaghetti code.
 
-## Extending the Functionality
+### Extending the Functionality
 
 If you just want to create some new API methods, that shouldn't be too difficult. Copy one of the files in `src/planner/main` (`select_joints.cpp` is a good candidate), rename it to `my_awesome_function.cpp`, edit it to your liking, add the file name to the list `set(PLANNER_SOURCES ...` inside `src/planner/CMakeLists.txt` and you're done. Function headers and all bindings are generated automagically.
 
