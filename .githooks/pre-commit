@@ -1,0 +1,9 @@
+#!/bin/bash
+
+printf "updating src/version.inc\n"
+printf "" > src/version.inc
+printf "commit_timestamp = \"%(%Y-%m-%d %H:%M:%S)T\"\n" >> src/version.inc
+printf "commit_tag = \"" >> src/version.inc
+git describe --all --long | tr "\n" "\""  >> src/version.inc
+printf "\n" >> src/version.inc
+git add "src/version.inc"
