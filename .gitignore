@@ -1,0 +1,8 @@
+build/
+dist
+__pycache__
+*.log
+*.log.*
+.vscode
+.venv
+*.egg*

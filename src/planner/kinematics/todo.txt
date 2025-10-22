@@ -1,0 +1,2 @@
+have an single source of truth abstraction around kinematic trees and individual frames in space (be it cartesion or joints) here, which is used by all downstream tasks
+    -> have documented clear conventions about coordinate systems

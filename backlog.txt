@@ -1,0 +1,119 @@
+
+delete setup dir
+
+tightening: cut corners (prioritize by saved length, maybe consider corner angle)
+
+remove encapsulate
+remove visual mesh shape which is now covered by concave triangle shape
+
+investigate if we can reactivate DBVT in compound shapes
+
+see if we can use indexed meshes for gimpact thing
+
+update readme since the build refactory
+
+just tried to compile with installed ompl instead of embedding it, got
+ImportError: /usr/local/lib/python3.10/dist-packages/PyGestaltPlanner.cpython-310-x86_64-linux-gnu.so: undefined symbol: _ZTIN4ompl4base35RealVectorDeterministicStateSamplerE
+(ompl::base::RealVectorDeterministicStateSampler)
+
+checking the file list https://packages.debian.org/sid/arm64/libompl-dev/filelist it looks like there is some .so installed that will be needed at runtime, so we scratch all that effort :/
+
+create json logs, not c++ logs
+
+catch circular dependencies between joints and links
+and also between robot children
+use weak pointers between links and joints
+curl meshes?
+assert that all quaternions are normalized
+use simplex optimization method to find limits of parameters (or maybe project 6d to 4d)
+verify interpolated trajectories
+encapsulate all kinds of shapes
+somehow stop the pair cache from caching <- suddenly faster for some reason
+max v endeff
+implement logging levels
+fix all warnings
+test collision management on heart and kidney
+animate debug log
+check urdfs for joints/links with same name
+do everything in c++ camelCase and provide optional snake_case for python
+convert all the _kv into [k, v]
+python custom code analysis (all stringifications, all log prints etc)
+don't iterate over all links, recursively iterate through __world__ children to avoid getting stuck in link loops
+refactor the "robot.link" handling
+sometimes a trajectory with one step is returned
+assert that libraries and planner are built with same defines
+
+PoseUpdate does not cast to pose
+install python module?
+
+for refectory day:
+rename actuated_joints -> actuated_arm_joints
+rename gripper_joints -> actuated_gripper_joints
+
+use perfect split shuffling in check_clearance and check_kinematic_limits
+
+distinguish between path(not time parametrized) and trajectory(time parametrized)
+
+
+terminate called after throwing an instance of 'std::runtime_error'
+  what():  [ruckig] error in step 1, dof: 0 input: 
+inp.current_position = [0]
+inp.current_velocity = [0]
+inp.current_acceleration = [0]
+inp.target_position = [1]
+inp.target_velocity = [0]
+inp.target_acceleration = [0]
+inp.max_velocity = [101199.7639466152]
+inp.max_acceleration = [5798319361861242]
+inp.max_jerk = [5798319361861242]
+
+happened while accidentally resampling an already sampled trajectory
+
+handle all kinds of numerical problems
+
+https://github.com/pantor/ruckig/issues/106
+
+distinguish between BulletJoint and BulletJointTemplate
+
+replace bulletObject using some template in part
+
+always use deterministic sampler (like in storz planner)
+expose sampling parameter
+encapsulate plan -> tighten -> smoothen workflow in single call
+
+sweeping
+
+implement optimal time parameterization along arbitrary trajectories
+(iterate back and forth along the trajectory, find longest possible dt, like for storz back then)
+
+modularize the whole thing
+custom robot format
+
+multi robot
+
+ik (tiny cc oder dll)
+
+configure once and then just call plan()
+
+selection system
+
+subspace simplex sampling:
+given a valid point, determine a random direction, find the limits in that direction, choose random along the line
+
+ditch urdf
+
+use c++ 20, kwargs, ranges
+
+really dig into ompl (projection?)
+
+proper serialization (generic)
+
+verbose: checking [...] -> [...] instead of displaying each sample
+
+visualize search tree of tcp
+
+work with continuous trajectorys also in python
+
+use references instead of object_id and give the things methods (although ids are probably better for error messages but maybe we can use tags there)
+
+collision margin per link

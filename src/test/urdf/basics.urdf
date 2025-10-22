@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<robot name="basics_test">
+	<link name="box">
+		<collision>
+			<geometry>
+				<box size="0.1 0.2 0.3" />
+			</geometry>
+		</collision>
+	</link>
+	<link name="sphere">
+		<collision>
+			<origin xyz="1 0 0" rpy="0 0 0" />
+			<geometry>
+				<sphere radius="0.4" />
+			</geometry>
+		</collision>
+	</link>
+	<link name="cylinder">
+		<collision>
+			<origin xyz="-1 0 0" rpy="0.1 0.3 0.7" />
+			<geometry>
+				<cylinder radius="0.7" length="0.8" />
+			</geometry>
+		</collision>
+	</link>
+	<link name="meshes">
+		<collision>
+			<origin xyz="0 1 0" rpy="0 0 0" />
+			<geometry>
+				<mesh filename="ico_ascii.stl" />
+			</geometry>
+		</collision>
+		<collision>
+			<origin xyz="1 1 0" rpy="0 0 0" />
+			<geometry>
+				<mesh filename="ico_binary.stl" />
+			</geometry>
+		</collision>
+	</link>
+	<link name="grandchild">
+		<collision>
+			<geometry>
+				<box size="0.1 0.2 0.3" />
+			</geometry>
+		</collision>
+	</link>
+
+	<joint name="joint1" type="fixed">
+		<parent link="box" />
+		<child link="sphere" />
+	</joint>
+	<joint name="joint2" type="revolute">
+		<parent link="box" />
+		<child link="cylinder" />
+		<limit lower="-2" upper="2" />
+	</joint>
+	<joint name="joint3" type="prismatic">
+		<parent link="box" />
+		<child link="meshes" />
+		<limit lower="-2" upper="2" />
+	</joint>
+	<joint name="joint4" type="fixed">
+		<parent link="sphere" />
+		<child link="grandchild" />
+	</joint>
+</robot> 

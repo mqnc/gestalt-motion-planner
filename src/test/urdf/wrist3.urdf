@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<robot name="wrist3">
+	<link name="wrist3">
+		<collision>
+			<origin xyz="1 2 3" rpy="4 5 6" />
+			<geometry>
+				<mesh filename="wrist3.stl"/>
+			</geometry>
+		</collision>
+	</link>
+</robot> 

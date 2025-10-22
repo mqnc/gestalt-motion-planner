@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<robot name="basic_shapes">
+	<link name="box">
+		<collision>
+			<geometry>
+				<box size="0.9 1 0.8" />
+			</geometry>
+		</collision>
+	</link>
+	<link name="sphere">
+		<collision>
+			<origin xyz="1 0 0" rpy="0 0 0" />
+			<geometry>
+				<sphere radius="0.5" />
+			</geometry>
+		</collision>
+	</link>
+	<link name="cylinder">
+		<collision>
+			<origin xyz="-1 0 0" rpy="0.1 0.3 0.7" />
+			<geometry>
+				<cylinder radius="0.5" length="0.8" />
+			</geometry>
+		</collision>
+	</link>
+	<link name="mesh">
+		<collision>
+			<origin xyz="2 0 0" rpy="0 0 0" />
+			<geometry>
+				<mesh filename="ico_ascii.stl" scale="0.5 0.45 0.4"/>
+			</geometry>
+		</collision>
+	</link>
+
+	<joint name="joint1" type="fixed">
+		<parent link="box" />
+		<child link="sphere" />
+	</joint>
+	<joint name="joint2" type="fixed">
+		<parent link="box" />
+		<child link="cylinder" />
+	</joint>
+	<joint name="joint3" type="fixed">
+		<parent link="box" />
+		<child link="mesh" />
+	</joint>
+
+</robot> 

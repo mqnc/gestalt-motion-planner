@@ -1,0 +1,39 @@
+# pegdebug src/codingassistants/classdeclarations.peg src/codingassistants/test.txt test.log.html
+
+Code <- (TargetClass / Scope / Identifier / Any)*
+
+TargetClass <- ClassKeyword ~_ SideEffectsClassName ~_ ClassBody _ ";"
+ClassKeyword <- <("class" / "struct")> !Identifier
+SideEffectsClassName <- ClassName
+ClassName <- <{CLASS_NAMES}>
+
+Identifier <- !"param_object" <[A-Za-z_][A-Za-z_0-9]*> # exclude cpp20 designated initializers
+
+Var <- Type ~_ Identifier ~_ Default?
+Default <- "=" _ <(!(_ ("," / ")" / ";")) (Parenthesized / Any))*>
+ClassBody <- "{" (!"}" (Access / Dtor / Ctor / Conversion / Field / Method / Scope / Comment / Any))* "}"
+Dtor <- "~" _ ClassName _ Parenthesized _ (Scope / ";")
+Ctor <- ~ClassName ~_ "(" ~_  Arg? (~_ "," ~_ Arg)* ~_ ")" ~_ (~MemberInitList? ~Scope / ";")
+MemberInitList <- ":" _ MemberInit (_ "," _ MemberInit)
+MemberInit <- Identifier _ (Scope / Parenthesized)
+
+Method <- Type ~_ Identifier ~_ "(" ~_  Arg? (~_ "," ~_ Arg)* ~_ ")" ~_ (~Scope / ";")
+Field <- Var ~_ ";"
+Arg <- Var
+Access <- <("private" / "protected" / "public")> _ ":"
+Conversion <- "operator" _ <ClassName> _ Parenthesized _ Const _ Scope
+Any <- <.>
+Br <- <"\r"? "\n">
+Comment <- <"//" !"(" (!Br .)* Br / "/*" !"(" (!"*/" Any)* "*/">
+Const <- <"const"?>
+NakedType <- <Identifier ("::" Identifier)* (_ "<" _ Type (_ "," _ Type)* _ ">")?>
+Refs <- <(_ "&")*>
+Type <- Const ~_ NakedType ~_ Refs
+Scope <- "{" (!"}" (Scope / StringLiteral / Comment / .))* "}"
+Parenthesized <- "(" (!")" (Parenthesized / StringLiteral / Comment / .))* ")"
+StringLiteral <- <CharConstant /  SimpleString /  RawString>
+CharConstant <- '\'' (('\\' .) / .) '\''
+SimpleString <- '"' (('\\' .) / (!'"' .))* '"'
+RawString <- 'R"' $delim<[a-zA-Z_0-9]*> '(' (!(')' $delim '"') .)* ')' $delim '"'
+
+_ <- <([ \t\r\n] / Comment)*>

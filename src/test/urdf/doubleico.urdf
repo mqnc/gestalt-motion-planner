@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<robot name="myIcoRobot">
+
+	<link name="myParentLink">
+		<collision>
+			<origin xyz="0 0 0" rpy="0 0 0" />
+			<geometry>
+				<mesh filename="ico_ascii.stl"/>
+			</geometry>
+		</collision>
+	</link>
+
+	<link name="myChildLink">
+		<collision>
+			<origin xyz="0 2.1 0" rpy="0 0 0" />
+			<geometry>
+				<mesh filename="ico_ascii.stl"/>
+			</geometry>
+		</collision>
+	</link>
+
+	<joint name="joint" type="revolute">
+		<parent link="myParentLink" />
+		<child link="myChildLink" />
+		<limit lower="-2" upper="2" />
+	</joint>
+
+</robot> 

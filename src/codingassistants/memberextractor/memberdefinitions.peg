@@ -1,0 +1,34 @@
+Code <- (MemberDeclarationHeader / Orphan / Scope / Identifier / Any)*
+
+MemberDeclarationHeader <-
+	(Comment _)*
+	<Insertion> _
+	(<CtorDtor> / <Type> _ <Member>) _
+	Args ~_
+	&(":" / "{")
+
+Any <- <.>
+Br <- <"\r"? "\n">
+Comment <- <"//" !"(" (!Br .)* Br / "/*" !"(" (!"*/" Any)* "*/">
+Identifier <- <[A-Za-z_][A-Za-z_0-9]*>
+Const <- <"const">
+Type <- <Const? _ Identifier ("::" Identifier)* _ ("<" _ Type (_ "," _ Type)* _ ">")? _ "&"*>
+Member <- {CLASS} "::" <Identifier>
+Args <- ~LPAREN ~_ (Arg (~_ ~COMMA ~_ Arg)*)? ~_ ~RPAREN
+Insertion <- Insertion1 / Insertion2
+Insertion1 <- "//(" " "? <(!(" "? ")" Br) Any)*> " "? ")" Br
+Insertion2 <- "/*(" " "? <(!(" "? ")*/") Any)*> " "? ")*/"
+Arg <- Type ~_ Identifier ~_ Insertion?
+CtorDtor <- {CLASS} "::" <"~"? {CLASS}>
+~Scope <- "{" (!"}" (Scope / StringLiteral / Comment / .))* "}"
+StringLiteral <- <CharConstant /  SimpleString /  RawString>
+CharConstant <- '\'' (('\\' .) / .) '\''
+SimpleString <- '"' (('\\' .) / (!'"' .))* '"'
+RawString <- 'R"' $delim<[a-zA-Z_0-9]*> '(' (!(')' $delim '"') .)* ')' $delim '"'
+Orphan <- <{CLASS} "::" Identifier>
+
+LPAREN <- <"(">
+RPAREN <- <")">
+COMMA <- <",">
+
+_ <- <([ \t\r\n] / Comment)*>

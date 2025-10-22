@@ -1,0 +1,4 @@
+actuated_joints:
+  - shoulder_pan_joint
+  - shoulder_lift_joint
+  - elbow_joint

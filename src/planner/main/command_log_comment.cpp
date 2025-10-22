@@ -1,0 +1,15 @@
+
+#include "planner_headers.h"
+
+/*( public: )*/ void GestaltPlanner::command_log_comment(
+	const string& comment
+) {
+	state->log.log(Log::Raw{
+		string("\n////////////////////"
+		"//////////////////////////////"
+		"//////////////////////////////\n") +
+		"// " + str::replace(comment, "\n", "\n// ") +
+		"\n////////////////////////////"
+		"//////////////////////////////"
+		"//////////////////////\n\n" });
+}

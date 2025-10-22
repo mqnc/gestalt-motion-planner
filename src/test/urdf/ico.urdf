@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<robot name="ico">
+
+	<link name="mesh">
+		<collision>
+			<origin xyz="0 0 0" rpy="0 0 0" />
+			<geometry>
+				<mesh filename="ico_ascii.stl" scale="0.7 0.45 0.3"/>
+			</geometry>
+		</collision>
+	</link>
+
+</robot> 
