@@ -9,7 +9,7 @@
 #include "shapes.h"
 #include "multibody.h"
 #include "collisionignoregroup.hpp"
-#include "encapsulator/encapsulate.h"
+//#include "encapsulator/encapsulate.h"
 
 auto btTransformFromUrdf(const UrdfTrafo& ut);
 

@@ -38,7 +38,7 @@ FROM base-${UBUNTU_VERSION} AS deps
 RUN apt update && apt install -y \
   libboost-serialization-dev \
   libboost-filesystem-dev \
-  libboost-system-dev \
+  # libboost-system-dev \
   libboost-program-options-dev \
   libboost-test-dev
 

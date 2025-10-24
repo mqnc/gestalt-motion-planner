@@ -6,13 +6,14 @@
 #include <functional>
 #include <cassert>
 #include <iostream>
+#include <cmath>
 
 template<typename F>
 class NelderMead {
 
 	struct Vertex {
 		std::valarray<double> args;
-		double cost = nan;
+		double cost = std::nan("");
 	};
 
 	std::vector<Vertex> simplex;

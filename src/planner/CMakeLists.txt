@@ -36,7 +36,7 @@ set(PLANNER_SOURCES
 	interpolator/interpolator.cpp
 	#kinematics/inverse_kinematics.cpp
 	urdf/urdf.cpp
-	encapsulator/encapsulate.cpp
+	#encapsulator/encapsulate.cpp
 	#render/htmlconverter.cpp
 	#export/collisionprobe.cpp
 	render/meshgenerator.cpp

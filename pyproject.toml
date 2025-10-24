@@ -1,7 +1,7 @@
 [project]
-name = "gestalt-planner"
-version = "0.1.19"
-description = "Gestalt Path Planner"
+name = "gestalt-motion-planner"
+version = "0.1.20"
+description = "Trajectory Planner for Robotic Manipulators"
 authors = [
   { name = "Mirko Kunze" },
   { name = "Nina Grabka" },
