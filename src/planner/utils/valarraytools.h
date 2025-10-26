@@ -46,6 +46,12 @@ inline T norm(const std::valarray<T>& va) {
 	return sqrt((va * va).sum());
 }
 
+template<typename T>
+inline T distance(const std::valarray<T>& a, const std::valarray<T>& b) {
+	std::valarray<T> delta = b - a;
+	return norm(delta);
+}
+
 template <typename T>
 T sign(T val) {
 	return (T(0) < val) - (val < T(0));

@@ -117,3 +117,7 @@ work with continuous trajectorys also in python
 use references instead of object_id and give the things methods (although ids are probably better for error messages but maybe we can use tags there)
 
 collision margin per link
+
+ability to weigh joints for distance computation
+
+variable step size :/

@@ -35,6 +35,15 @@ else if (method == "create_collision_ignore_group") {
 		params.at("members").get<const vector<string>>());
 }
 
+else if (method == "cut_corners") {
+	result = self.cut_corners(
+		params.at("object_id").get<const string>(),
+		params.at("waypoints").get<const valarray<valarray<double>>>(),
+		params.value("cutoff_ratios", vector<double> {0.5, 0.25}),
+		params.value("angle_threshold", 60.0 * 3.1416/180.0),
+		params.value("distance_threshold", 0.2));
+}
+
 else if (method == "delete_collision_ignore_group") {
 	self.delete_collision_ignore_group(
 		params.at("name").get<const string>());

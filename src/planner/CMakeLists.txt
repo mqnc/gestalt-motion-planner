@@ -47,6 +47,7 @@ set(PLANNER_SOURCES
 	main/bttransformfrompose.cpp
 	main/cache_file.cpp
 	main/check_clearance.cpp
+	main/cut_corners.cpp
 	main/find_collisions.cpp
 	main/check_kinematic_feasibility.cpp
 	main/collision_ignore_group.cpp

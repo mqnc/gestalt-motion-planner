@@ -27,7 +27,6 @@ struct CollisionRobotTest {
 (string(::testing::UnitTest::GetInstance()->current_test_info()->name()) + ".log.cpp")
 	; // for formatter
 
-#ifdef NAY
 TEST(test_planner, construction) {
 	{
 		GestaltPlanner planner(THIS_TEST_LOG_NAME);
@@ -176,7 +175,7 @@ TEST(test_planner, set_base_pose) {
 	btDumpMemoryLeaks();
 #endif
 }
-#endif
+
 TEST(test_planner, set_joint_positions) {
 	{
 		GestaltPlanner planner(THIS_TEST_LOG_NAME);
@@ -302,7 +301,7 @@ TEST(test_planner, set_joint_positions) {
 	btDumpMemoryLeaks();
 #endif
 }
-#ifdef NAY
+
 TEST(test_planner, find_collisions__collision_ignore_groups) {
 	{
 		GestaltPlanner planner(THIS_TEST_LOG_NAME);
@@ -728,6 +727,75 @@ TEST(test_planner, plan_smoothen_export_import) {
 			constrainedSmoothTightPath3, 0.016, "html",
 			string() + "exports/constrained_smooth_tight_path.html");
 	}
+#ifdef BT_DEBUG_MEMORY_ALLOCATIONS
+	btDumpMemoryLeaks();
+#endif
+}
+
+TEST(test_planner, cut_corners) {
+	GestaltPlanner planner(THIS_TEST_LOG_NAME);
+	auto& state = *GestaltPlannerTest::getState(planner);
+
+	planner.cache_file(
+		"pillar.urdf",
+		R"(<?xml version="1.0"?><robot name="pillar"><link name="pillar">
+	<collision><origin xyz="0 0 0.5" rpy="0 0 0" />
+	<geometry><cylinder radius="0.05" length="1" /></geometry>
+	</collision></link></robot>)");
+
+	planner.spawn("robot", "../../../models/ur5e/ur5e.urdf",
+		"../../../models/ur5e/ur5e.yaml");
+
+	planner.spawn("pillar", "pillar.urdf", "", Pose {0.5, 0});
+
+	planner.set_safety_margin("*", 0.012);
+
+	valarray<double> start = {-1.4, 0.5, 0, 0, 0, 0};
+	valarray<double> peak = {0, -3, 0, 0, 0, 0};
+	valarray<double> target = {0.6, 0.5, 0, 0, 0, 0};
+	valarray<double> appendix = {1.0, -1, 0, 0, 0, 0};
+
+	valarray<double> ones = {1, 1, 1, 1, 1, 1};
+
+	valarray<valarray<double>> farPath = {start, peak, target};
+
+	auto farInterpolated = planner.interpolate(
+		farPath, 0.04,
+		ones * 2, ones * 10, ones * 10, 1.01
+	);
+
+	planner.render_animation(
+		"not yet cut path", "robot",
+		farInterpolated,
+		0.016, "html", "exports/not_yet_cut.html");
+
+	auto cutPath = planner.cut_corners("robot", farPath);
+	EXPECT_EQ(cutPath.size(), 4);
+
+	auto cutInterpolated = planner.interpolate(
+		cutPath, 0.04,
+		ones * 2, ones * 10, ones * 10, 1.01
+	);
+
+	planner.render_animation(
+		"cut path", "robot",
+		cutInterpolated,
+		0.016, "html", "exports/cut.html");
+
+	auto cutCollides = planner.cut_corners("robot", farPath, {0.5});
+	EXPECT_EQ(cutCollides.size(), 3);
+
+	auto cutNotWorthIt = planner.cut_corners("robot", farPath, {0.01});
+	EXPECT_EQ(cutNotWorthIt.size(), 3);
+
+	valarray<valarray<double>> zigzag = {start, peak, target, appendix};
+
+	auto cutsMerged = planner.cut_corners("robot", zigzag, {0.5});
+	// the to waypoint of the first cut and the to waypoint of the second cut
+	// should coincide and only one should get created
+	EXPECT_EQ(cutsMerged.size(), 5);
+
+
 #ifdef BT_DEBUG_MEMORY_ALLOCATIONS
 	btDumpMemoryLeaks();
 #endif
@@ -1349,5 +1417,6 @@ TEST(test_planner, concave) {
 	btDumpMemoryLeaks();
 #endif
 }
-#endif
+
+
 TEST_MAIN

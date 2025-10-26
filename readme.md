@@ -5,7 +5,9 @@ The Gestalt Motion Planner is a collision-free trajectory planner for robotic ma
 
 ## Project Status
 
-The planner is used in industrial applications at Gestalt Automation GmbH. The author is no longer working there and maintaining this planner as a hobby project (with permission).
+The planner is used in industrial applications at Gestalt Automation GmbH. That being said, it was originally not intended to be open-sourced and many design decisions were hurry-driven, such as the hard-coded sampling distance for example. Depending on the amount of popular request, those rough patches may or may not be ironed out over time. Also, PRs welcome!
+
+The author is now no longer working at Gestalt and maintaining this planner as a hobby project (with permission).
 
 ### Features
 
@@ -23,8 +25,11 @@ The planner is used in industrial applications at Gestalt Automation GmbH. The a
 
 ### Missing
 
+* configurable sampling distance for collision checks
+* configurable distance computations: currently we simply compute the Euclidean norm in joint space without assigning different weights to different joints
 * strict input validation: many common errors are caught, unforeseen edge cases can cause a crash
 * inverse kinematics: the planner operates entirely in joint space, ik for target poses has to be implemented by the user
+* multithreading can probably give a massive speedup
 * usable debug logs: right now, the planner creates a C++ file with the history of function calls which can be compiled into the planner itself and debugged in an IDE which is arguably somewhat unelegant
 
 ## License
@@ -34,6 +39,14 @@ This project is released under the [PolyForm Noncommercial License 1.0.0](https:
 ## Quickstart
 
 ### Setup
+
+Precompiled Python libraries exist for Linux and macOS 14+. For those it's as easy as
+
+```sh
+pip install gestalt-motion-planner
+```
+
+Windows [was tried](https://github.com/AlmondBread/gestalt-motion-planner-test/actions) but CL had too many complaints, so WSL it is! (MinGW probably works, was not tested.)
 
 If you run some recent version of Ubuntu and have docker installed, you can just execute `sh docker_build_and_test.sh` and it will spit out static libs for C++ and python modules into a build folder. If not, you can still explore the Dockerfile for installation instructions.
 
@@ -151,6 +164,8 @@ The method `interpolate` can be used to do linear interpolation of arbitrary par
 The method `simplify_path` checks if a direct linear motion (in joint space) from the start to the end is possible. If so, it discards all intermediate waypoints. If not, it recursively calls itself on the first half and the last half of the waypoint list. The always true base case is if the to-be-checked waypoints are neighbors anyway.
 This scheme was chosen as a compromise between coverage and performance, as checking for shortcuts between each waypoint pair scales badly with the number of waypoints.
 
+The method `cut_corners` attempts to find little shortcuts. For each waypoint, it creates a little helper point before and after it (along the original trajectory) and attempts to connect them directly. There was often the situation that a small obstacle caused two very far joint motions with a very sharp corner in between, this method is a mitigation strategy.
+
 The method `tighten_path` iterates through a list of waypoints and tries to bring each waypoint closer to the average of its neighbors, while continuously making sure that no collisions are introduced. This can be pictured as threading a rubber band through all waypoints and tightening it, so that the path gets shorter while tightly curving around collisions. Since `plan_path` usually results in very zigzagish paths, this method is already built in if you set the `tighten` parameter in `plan_path` to `true`.
 
 Finally, you can lay a smooth curve through a list of waypoints, using `smoothen_path`. It creates a spline through the waypoints while making sure that no new collisions are introduced.
@@ -224,6 +239,15 @@ GestaltPlanner:
                 name: str,
                 members: List[str]
         ) -> None
+        cut_corners(
+                self: PyGestaltPlanner.GestaltPlanner,
+                *,
+                object_id: str,
+                waypoints: list[list[float]],
+                cutoff_ratios: list[float] = [0.5, 0.25],
+                angle_threshold: float = 1.0472,
+                distance_threshold: float = 0.2
+        ) -> list[list[float]]
         delete_collision_ignore_group(
                 self: PyGestaltPlanner.GestaltPlanner,
                 *,
@@ -419,12 +443,15 @@ GestaltPlanner:
 |  |  |  |
 | --- | --- | --- |
 | `active_object` | — | When rendering, the active object is highlighted in yellow and only collisions that involve the active object are shown. When listing collision ignore groups, all inactive objects are put in the `__passive__` group, as they are during collision checks. |
+| `angle_threshold` | — | If in a waypoint the direction change from one segment to the next is less than this angle, the shortcut attempt will be skipped. |
 | `command_log_file` | — | Every method call on the planner will be logged in this file so the session can be debugged in C++ later. |
 | `config_file` | — | the yaml config file for the robot |
 | `constraint_tolerance` | — | Allow the dot product of a constraint and the joint values to be off by this much without rejecting; useful if you start in a position that is a measurement from the real robot |
 | `constraints` | — | see [constraints](#constraints) |
+| `cutoff_ratios` | — | describes at what proportion of a segment the shortcut is attempted; provide a list of ratios that will be attempted, each element between 0 and 0.5 |
 | `data` | — | string containing a [JSON-RPC 2.0](https://www.jsonrpc.org/specification) request |
 | `description_file` | — | the urdf file for the robot |
+| `distance_threshold` | — | If a shortcut will save less than this distance (in joint space units), it will not be attempted. |
 | `dt` | — | the sampling time |
 | `encapsulate_meshes` | — | This was intended for encapsulating meshes in much simpler hulls for speeding up the collision detection but it inflated the meshes too much and other issues had higher priority. It's totally gonna happen one day tho! |
 | `format` | — | "json" or "html" |

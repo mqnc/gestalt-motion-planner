@@ -10,7 +10,7 @@ ClassName <- <{CLASS_NAMES}>
 Identifier <- !"param_object" <[A-Za-z_][A-Za-z_0-9]*> # exclude cpp20 designated initializers
 
 Var <- Type ~_ Identifier ~_ Default?
-Default <- "=" _ <(!(_ ("," / ")" / ";")) (Parenthesized / Any))*>
+Default <- "=" _ <(!(_ ("," / ")" / ";")) (Parenthesized / Scope / Any))*>
 ClassBody <- "{" (!"}" (Access / Dtor / Ctor / Conversion / Field / Method / Scope / Comment / Any))* "}"
 Dtor <- "~" _ ClassName _ Parenthesized _ (Scope / ";")
 Ctor <- ~ClassName ~_ "(" ~_  Arg? (~_ "," ~_ Arg)* ~_ ")" ~_ (~MemberInitList? ~Scope / ";")

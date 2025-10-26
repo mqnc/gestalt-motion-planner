@@ -122,6 +122,32 @@ public: void create_collision_ignore_group(create_collision_ignore_group_params 
 #endif
 
 
+public: valarray<valarray<double>> cut_corners(
+	const string& object_id,
+	const valarray<valarray<double>>& waypoints,
+	vector<double>  cutoff_ratios = {0.5, 0.25},
+	double  angle_threshold = 60.0 * 3.1416/180.0,
+	double  distance_threshold = 0.2);
+
+#ifndef PYBIND
+public: struct cut_corners_params{
+	const string& object_id;
+	const valarray<valarray<double>>& waypoints;
+	vector<double>  cutoff_ratios = {0.5, 0.25};
+	double  angle_threshold = 60.0 * 3.1416/180.0;
+	double  distance_threshold = 0.2; };
+
+public: valarray<valarray<double>> cut_corners(cut_corners_params param_object){
+	return cut_corners(
+		param_object.object_id,
+		param_object.waypoints,
+		param_object.cutoff_ratios,
+		param_object.angle_threshold,
+		param_object.distance_threshold);
+}
+#endif
+
+
 public: void delete_collision_ignore_group(
 	const string& name);
 

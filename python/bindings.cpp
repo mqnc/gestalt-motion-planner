@@ -73,16 +73,19 @@ PYBIND11_MODULE(PyGestaltPlanner, m) {
 			py::init<
 				int,
 				std::string,
-				std::string
+				std::string,
+				std::valarray<double>
 			>(),
 			py::kw_only(),
 			py::arg("step") = -1,
 			py::arg("link1_id") = "",
-			py::arg("link2_id") = ""
+			py::arg("link2_id") = "",
+			py::arg("position") = std::valarray<double>{ nan(""), nan(""), nan("") }
 		)
 		.def_readwrite("step", &Collision::step)
 		.def_readwrite("link1_id", &Collision::link1_id)
-		.def_readwrite("link2_id", &Collision::link2_id);
+		.def_readwrite("link2_id", &Collision::link2_id)
+		.def_readwrite("position", &Collision::position);
 
 	py::class_<PlannerParamInfo>(m, "PlannerParamInfo")
 		.def(
@@ -155,6 +158,19 @@ PYBIND11_MODULE(PyGestaltPlanner, m) {
 			py::kw_only(),
 			py::arg("name"),
 			py::arg("members")
+		)
+		.def("cut_corners",
+			&GestaltPlanner::cut_corners,
+			py::kw_only(),
+			py::arg("object_id"),
+			py::arg("waypoints"),
+			py::arg("cutoff_ratios") = vector<double>{0.5, 0.25},
+			py::arg("angle_threshold") = 60.0 * 
+# 129 "../src/planner/plannermethods.inc" 3 4
+                                 3.14159265358979323846
+# 129 "../src/planner/plannermethods.inc"
+                                     /180.0,
+			py::arg("distance_threshold") = 0.2
 		)
 		.def("delete_collision_ignore_group",
 			&GestaltPlanner::delete_collision_ignore_group,
