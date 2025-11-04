@@ -97,7 +97,7 @@ Trajectory planning is done in the following steps:
 
 In order to hold something upright while moving, constraints were introduced. Constraints keep the dot product of the joint angles and arbitrary vectors constant. Consider the following configuration:
 
-![](docs/constraints.jpg)
+![](docs/constraints.png)
 
 If you keep both `q5` as well as the sum `q2 + q3 + q4` constant, the flask can only stay perfectly level. This can be specified via the following list of constraints: `[[0, 0, 0, 0, 1, 0], [0, 1, 1, 1, 0, 0]]`, meaning
 
